@@ -6,7 +6,6 @@ public class app {
 	
 	/**
 	 * TODO add the ability to switch screens to the consoles of individual and file servers
-	 * TODO Discord chat integration
 	 */
 
 	public static void main(String[] args) {
