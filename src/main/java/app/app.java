@@ -6,9 +6,7 @@ public class app {
 	
 	/**
 	 * TODO add the ability to switch screens to the consoles of individual and file servers
-	 * TODO Discord chat integration 
-	 * TODO let the user know that chat is monitored
-	 * TODO let the user on join know who else is on the other servers
+	 * TODO Discord chat integration
 	 */
 
 	public static void main(String[] args) {

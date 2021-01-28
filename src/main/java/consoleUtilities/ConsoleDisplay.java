@@ -45,6 +45,10 @@ public class ConsoleDisplay extends Display{
 		drawDisplay();
 	}
 	
+	public int getPlayerCount() {
+		return players.size();
+	}
+	
 	public void addPlayer(String player) {
 		players.add(player);
 		drawDisplay();

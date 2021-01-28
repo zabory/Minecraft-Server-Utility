@@ -10,6 +10,7 @@ import java.util.Scanner;
 
 import consoleUtilities.ConsoleDisplay;
 import dataStructures.Server;
+import discord.Bot;
 
 public class ServerManager {
 	
@@ -23,13 +24,14 @@ public class ServerManager {
 	private ConsoleDisplay CD;
 	
 	private boolean awaitingCommand;
+	
+	private Bot bot;
 
 	public ServerManager() {
 		awaitingCommand = false;
-
-		// serverCount = 0;
 		servers = new HashMap<String, Server>();
 		CD = new ConsoleDisplay();
+		bot = new Bot(this);
 
 		new KeyboardThread().start();
 	}
@@ -53,12 +55,16 @@ public class ServerManager {
 			} else if (message.contains(" joined the game")) {
 				
 				CD.addPlayer(message.split(":")[3].trim().replace(" joined the game", ""));
-				if(servers.get(server).isOnGlobal())
+				if(servers.get(server).isOnGlobal()) {
 					sendAllMinusOne(server, "/tellraw @a {\"text\":\"" + message.split(":")[3].trim().split(" ")[0]
 						+ " joined " + server + " server\",\"color\":\"yellow\"}");
+					sendLoginToPlayer(server, message.split(":")[3].trim().split(" ")[0]);
+				}
 				CD.addToLog(message.split(":")[3].trim());
 				
 				servers.get(server).addPlayer(message.split(":")[3].trim().split(" ")[0]);
+				bot.changeActiveCount(CD.getPlayerCount());
+				bot.sendMessage(message.split(":")[3].trim().split(" ")[0] + " joined " + server + " server");
 			} else if (message.contains(" left the game")) {
 				
 				CD.removePlayer(message.split(":")[3].trim().replace(" left the game", ""));
@@ -67,25 +73,20 @@ public class ServerManager {
 						+ " left " + server + " server\",\"color\":\"yellow\"}");
 				CD.addToLog(message.split(":")[3].trim());
 				servers.get(server).removePlayer(message.split(":")[3].trim().split(" ")[0]);
+				bot.changeActiveCount(CD.getPlayerCount());
+				bot.sendMessage(message.split(":")[3].trim().split(" ")[0] + " left " + server + " server");
 				
-			} else if (message.contains(" <") && message.contains("> ")) {
+			} else if (message.contains(" <") && message.contains("> ") && !message.contains("[SUCCESS] Line")) {
 				
 				CD.addToLog(message.split(":")[3].trim());
+				bot.sendMessage(server + " server:" + message.replace(message.split(":")[0], "").replace(message.split(":")[1], "").replace(message.split(":")[2], "").replace(":::", "").trim());
 				if(servers.get(server).isOnGlobal())
 					sendAllMinusOne(server, "tellraw @a {\"text\":\"" + message.replace(message.split(":")[0], "").replace(message.split(":")[1], "").replace(message.split(":")[2], "").replace(":::", "").trim() + "\"}");
 			}
 		}
 	}
 	
-	private void sendAllMinusOne(String server, String message) {
-		for (String key : servers.keySet()) {
-			if (!key.equals(server) && servers.get(key).isOnGlobal()) {
-				servers.get(key).sendCommand(message + "\n");
-			}
-		}
-	}
-	
-	public void processCommand(String line) {
+	public void processMessageFromConsole(String line) {
 		
 		CD.addCommandLog("Command:" + line);
 		
@@ -145,6 +146,7 @@ public class ServerManager {
 		case "remove":
 			CD.removePlayer(line.split(" ")[1]);
 			CD.drawDisplay();
+			bot.changeActiveCount(CD.getPlayerCount());
 			break;
 		//starts file server
 		case "startFSO":
@@ -214,6 +216,62 @@ public class ServerManager {
 		default:
 			CD.addCommandLog("Unknown command. Type \"help\" for help.");
 			break;
+		}
+	}
+	
+	public void processMessageFromDiscord(String message) {
+		sendAll("/tellraw @a {\"text\":\"" + message + "\"}");
+		CD.addToLog(message);
+	}
+
+	private void sendLoginToPlayer(String serverName, String player) {
+		Server server = servers.get(serverName);
+		server.sendCommand(
+				"/tellraw " + player + " {\"text\":\"***********************************************\",\"color\":\"dark_blue\"}\n");
+		server.sendCommand("/tellraw " + player
+				+ " {\"text\":\"*This server is on global chat*\",\"bold\":true,\"color\":\"dark_blue\"}\n");
+		server.sendCommand(
+				"/tellraw " + player + " {\"text\":\"***********************************************\",\"color\":\"dark_blue\"}\n");
+		server.sendCommand("/tellraw " + player + " {\"text\":\"Current population:" + CD.getPlayerCount()
+				+ "\",\"color\":\"dark_gray\"}\n");
+		server.sendCommand("/tellraw " + player + " {\"text\":\"Servers on global chat: " + getGlobalChatList()
+				+ "\",\"color\":\"dark_gray\"}\n");
+		if (bot.isActive()) {
+			server.sendCommand("/tellraw " + player
+					+ " [\"\",{\"text\":\"Chat is also connected to the \",\"color\":\"dark_gray\"},{\"text\":\"Discord\",\"underlined\":true,\"color\":\"dark_purple\",\"clickEvent\":{\"action\":\"open_url\",\"value\":\"https://discord.gg/gf4Nn4nS3d\"},\"hoverEvent\":{\"action\":\"show_text\",\"contents\":{\"text\":\"Click to join\"}}},{\"text\":\" server\",\"color\":\"dark_gray\"}]\n");
+		}
+
+	}
+	
+	private String getGlobalChatList() {
+		String list = "";
+		
+		for(String x: servers.keySet()) {
+			if(servers.get(x).isOnGlobal()) {
+				list += ", " + x;
+			}
+		}
+		
+		return list.replaceFirst(", ", "");
+	}
+	
+	private void sendAll(String message) {
+		for (String key : servers.keySet()) {
+			if (servers.get(key).isOnGlobal()) {
+				servers.get(key).sendCommand(message + "\n");
+			}
+		}
+	}
+	
+	public void log(String message) {
+		CD.addCommandLog(message);
+	}
+	
+	private void sendAllMinusOne(String server, String message) {
+		for (String key : servers.keySet()) {
+			if (!key.equals(server) && servers.get(key).isOnGlobal()) {
+				servers.get(key).sendCommand(message + "\n");
+			}
 		}
 	}
 	
@@ -307,7 +365,7 @@ public class ServerManager {
 			
 			while(!input.equals("quit")) {
 				input = kb.nextLine();
-				processCommand(input);
+				processMessageFromConsole(input);
 			}
 			
 			kb.close();
