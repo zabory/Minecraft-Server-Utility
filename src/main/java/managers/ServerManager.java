@@ -77,8 +77,7 @@ public class ServerManager {
 				bot.changeActiveCount(summaryDisplay.getPlayerCount());
 				bot.sendMessage(message.split(":")[3].trim().split(" ")[0] + " left " + server + " server");
 				
-			} else if (message.contains(" <") && message.contains("> ") && !message.contains("[SUCCESS] Line")) {
-				
+			} else if (message.split(":").length > 3 && (message.split(":")[3].startsWith(" <") && message.contains("> ") && !message.contains("[SUCCESS] Line"))) {
 				summaryDisplay.addToLog(message.split(":")[3].trim());
 				bot.sendMessage(server + " server:" + message.replace(message.split(":")[0], "").replace(message.split(":")[1], "").replace(message.split(":")[2], "").replace(":::", "").trim());
 				if(servers.get(server).isOnGlobal())
@@ -91,6 +90,14 @@ public class ServerManager {
 		summaryDisplay.addCommandLog("Command:" + line);
 		
 		switch (line.split(" ")[0]) {
+		
+		//show console of focused server
+		case "console":
+			if(summaryDisplay.getSelected()!= null) {
+				summaryDisplay.setFocused(false);
+				summaryDisplay.getSelected().getSCD().setFocused(true);
+			}
+			break;
 		//clear the console
 		case "clear":
 			summaryDisplay.clearCommandLog();
@@ -98,6 +105,7 @@ public class ServerManager {
 		//sends a help message to the console
 		case "help":
 			summaryDisplay.addCommandLog("clear: clears command log");
+			summaryDisplay.addCommandLog("console: goes to the focused servers console");
 			summaryDisplay.addCommandLog("select <server name>: Selects a server for focus");
 			summaryDisplay.addCommandLog("generateFSO: generates a file server config for the focused server");
 			summaryDisplay.addCommandLog("remove <player name>: removes player from list of players");
@@ -219,9 +227,21 @@ public class ServerManager {
 	}
 	
 	public void processMessageFromConsole(String line) {
-		
 		if(summaryDisplay.isFocused()) {
 			messageToSummary(line);
+		}else {
+			if(line.equals("back")) {
+				servers.forEach((key, server) -> {
+					server.getSCD().setFocused(false);
+				});
+				summaryDisplay.setFocused(true);
+			}else {
+				servers.forEach((key, server) -> {
+					if(server.getSCD().isFocused()) {
+						server.sendCommand(line + "\n");
+					}
+				});
+			}
 		}
 	}
 	

@@ -7,6 +7,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.util.LinkedList;
 
+import consoleUtilities.ServerConsoleDisplay;
 import managers.ServerManager;
 
 public class Server {
@@ -30,6 +31,8 @@ public class Server {
 	
 	private boolean isOnGlobal;
 	private boolean isFileHostingOn;
+	
+	private ServerConsoleDisplay SCD;
 
 	/**
 	 * Construct the server
@@ -51,8 +54,14 @@ public class Server {
 		isOnGlobal = true;
 		isFileHostingOn = false;
 		
+		SCD = new ServerConsoleDisplay();
+		
 		ServerThread st = new ServerThread(serverFile, startCommand);
 		st.start();
+	}
+	
+	public ServerConsoleDisplay getSCD() {
+		return SCD;
 	}
 
 	/**
@@ -157,6 +166,7 @@ public class Server {
 				new ErrorThread().start();
 
 				while ((line = input.readLine()) != null && SM != null) {
+					SCD.addToLog(line);
 					SM.processMessageFromServer(line, serverName);
 				}
 								

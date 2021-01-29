@@ -1,5 +1,9 @@
 package discord;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.Scanner;
+
 import javax.security.auth.login.LoginException;
 
 import managers.ServerManager;
@@ -9,8 +13,6 @@ import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.events.ReadyEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
-import net.dv8tion.jda.api.requests.GatewayIntent;
-import net.dv8tion.jda.api.utils.MemberCachePolicy;
 
 public class Bot {
 	
@@ -56,7 +58,16 @@ public class Bot {
 	
 	public void startBot() {
 		if(bot == null || !bot.getStatus().isInit()) {
-			JDABuilder bot = JDABuilder.createDefault(BOT_INFO.getToken());
+			String token = "";
+			
+			try {
+				Scanner botProp = new Scanner(new File("botProp.txt"));
+				token = botProp.nextLine();
+				botProp.close();
+			} catch (FileNotFoundException e1) {
+				e1.printStackTrace();
+			}
+			JDABuilder bot = JDABuilder.createDefault(token);
 			bot.setActivity(Activity.watching("0 players online"));
 			bot.addEventListeners(new Listener());
 			
