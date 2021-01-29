@@ -5,7 +5,7 @@ import managers.ServerManager;
 public class app {
 	
 	/**
-	 * TODO add the ability to switch screens to the consoles of individual and file servers
+	 * TODO use parameters when starting a server instead of regular way
 	 */
 
 	public static void main(String[] args) {
