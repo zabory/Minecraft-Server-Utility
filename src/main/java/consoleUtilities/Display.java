@@ -2,6 +2,8 @@ package consoleUtilities;
 
 public abstract class Display {
 	
+	private boolean isFocused;
+	
 	/**
 	 * Print a header to a column. This will center the title in the line of *s
 	 * @param data Title of column
@@ -49,5 +51,16 @@ public abstract class Display {
 	}
 	
 	abstract void drawDisplay();
+
+	public boolean isFocused() {
+		return isFocused;
+	}
+
+	public void setFocused(boolean isFocused) {
+		this.isFocused = isFocused;
+		if(isFocused) {
+			drawDisplay();
+		}
+	}
 
 }

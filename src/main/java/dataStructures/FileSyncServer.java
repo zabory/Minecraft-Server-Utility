@@ -14,14 +14,14 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Scanner;
 
-import consoleUtilities.ConsoleDisplay;
+import consoleUtilities.SummaryDisplay;
 
 public class FileSyncServer extends Thread {
 
 	private File properties;
 	private boolean running;
 	private ServerSocket serverSocket;
-	private ConsoleDisplay CD;
+	private SummaryDisplay CD;
 	// list of directories to sync and files to sync
 	LinkedList<File> dirSync = new LinkedList<File>();
 	LinkedList<File> fileSync = new LinkedList<File>();
@@ -29,7 +29,7 @@ public class FileSyncServer extends Thread {
 	
 	File forge;
 
-	public FileSyncServer(File properties, ConsoleDisplay CD) {
+	public FileSyncServer(File properties, SummaryDisplay CD) {
 		this.properties = properties;
 		this.CD = CD;
 		running = true;
