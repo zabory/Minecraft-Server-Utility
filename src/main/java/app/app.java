@@ -6,6 +6,7 @@ public class app {
 	
 	/**
 	 * TODO use parameters when starting a server instead of regular way
+	 * TODO start status updates
 	 */
 
 	public static void main(String[] args) {
